@@ -21,6 +21,9 @@ let urls = [];
 let subconverter = "subapi-loadbalancing.pages.dev"; //在线订阅转换后端，目前使用CM的订阅转换功能。支持自建psub 可自行搭建https://github.com/bulianglin/psub
 let subconfig = "https://raw.githubusercontent.com/cmliu/ACL4SSR/main/Clash/config/ACL4SSR_Online_MultiCountry.ini"; //订阅配置文件
 
+let subproxyUrl = "https://cfno1.pages.dev/sub";
+let encodedData = '';
+
 export default {
 	async fetch (request,env) {
 		const userAgentHeader = request.headers.get('User-Agent');
@@ -36,6 +39,7 @@ export default {
 		FileName = env.SUBNAME || FileName;
 		MainData = env.LINK || MainData;
 		if(env.LINKSUB) urls = await ADD(env.LINKSUB);
+		subproxyUrl = env.SUBPROXYURL || subproxyUrl;
 
 		const currentDate = new Date();
 		currentDate.setHours(0, 0, 0, 0); 
@@ -48,6 +52,9 @@ export default {
 		let expire= Math.floor(timestamp / 1000) ;
 		SUBUpdateTime = env.SUBUPTIME || SUBUpdateTime;
 
+		// 获取优选IP端口订阅数据
+		encodedData = await fetchSubscription(subscriptionUrl);
+
 		let 重新汇总所有链接 = await ADD(MainData + '\n' + urls.join('\n'));
 		let 自建节点 ="";
 		let 订阅链接 ="";
@@ -55,7 +62,11 @@ export default {
 			if (x.toLowerCase().startsWith('http')) {
 				订阅链接 += x + '\n';
 			} else {
-				自建节点 += x + '\n';
+				//这里裂变所有可替换节点的优选IP和端口
+				const newLinks = getEncodedNewLinks(x);
+				newLinks.forEach(newLink => {
+					自建节点 += newLink + '\n';
+				    });
 			}
 		}
 		MainData = 自建节点;
@@ -297,6 +308,19 @@ async function MD5MD5(text) {
 	return secondHex.toLowerCase();
 }
 
+async function fetchSubscription(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const text = await response.text();
+        return text;
+    } catch (error) {
+        console.error('There has been a problem with your fetch operation:', error);
+    }
+}
+
 function clashFix(content) {
 	if(content.includes('wireguard') && !content.includes('remote-dns-resolve')){
 		let lines;
@@ -320,4 +344,60 @@ function clashFix(content) {
 		content = result;
 	}
 	return content;
+}
+
+// 判断字符串是否为Base64编码
+function isBase64(str) {
+    try {
+        return btoa(atob(str)) === str;
+    } catch (err) {
+        return false;
+    }
+}
+
+// 解析IP和端口信息
+function parseIPPort(data) {
+    const lines = data.split('\n');
+    const ipPortList = lines.map(line => {
+        const match = line.match(/@([^:]+):(\d+)/);
+        if (match) {
+            return { ip: match[1], port: match[2] };
+        }
+        return null;
+    }).filter(entry => entry !== null); // 过滤掉无效的条目
+    return ipPortList;
+}
+
+// 替换链接中的IP和端口
+function replaceIPPort(template, ip, port) {
+    return template.replace(/"add":\s*".*?"/, `"add": "${ip}"`).replace(/"port":\s*"\d+"/, `"port": "${port}"`);
+}
+
+// 获取encodedNewLinks的方法
+function getEncodedNewLinks(templateLink) {
+    const newLinks = [];
+
+    // 去掉"vmess://"前缀
+    if (templateLink.startsWith("vmess://")) {
+        templateLink = templateLink.slice(8);
+    }
+
+    // 判断templateLink是否为Base64编码并进行解码
+    if (isBase64(templateLink)) {
+        templateLink = base64Decode(templateLink);
+    }
+
+    if (encodedData) {
+        const decodedData = base64Decode(encodedData.trim());
+        if (decodedData) {
+            const ipPortList = parseIPPort(decodedData);
+            ipPortList.forEach(({ ip, port }) => {
+                const newLink = replaceIPPort(templateLink, ip, port);
+                const encodedNewLink = base64Encode(newLink);
+                newLinks.push(`vmess://${encodedNewLink}`);
+            });
+        }
+    }
+
+    return newLinks;
 }
