@@ -53,7 +53,7 @@ export default {
 		SUBUpdateTime = env.SUBUPTIME || SUBUpdateTime;
 
 		// 获取优选IP端口订阅数据
-		encodedData = await fetchSubscription(subscriptionUrl);
+		// encodedData = await fetchSubscription(subscriptionUrl);
 
 		let 重新汇总所有链接 = await ADD(MainData + '\n' + urls.join('\n'));
 		let 自建节点 ="";
@@ -63,10 +63,11 @@ export default {
 				订阅链接 += x + '\n';
 			} else {
 				//这里裂变所有可替换节点的优选IP和端口
-				const newLinks = getEncodedNewLinks(x);
-				newLinks.forEach(newLink => {
-					自建节点 += newLink + '\n';
-				    });
+				//const newLinks = getEncodedNewLinks(x);
+				//newLinks.forEach(newLink => {
+				//	自建节点 += newLink + '\n';
+				//   });
+				自建节点 += x + '\n';
 			}
 		}
 		MainData = 自建节点;
