@@ -53,7 +53,7 @@ export default {
 		SUBUpdateTime = env.SUBUPTIME || SUBUpdateTime;
 
 		// 获取优选IP端口订阅数据
-		encodedData = await fetchSubscription(subscriptionUrl);
+		encodedData = await fetchSubscription(subproxyUrl);
 
 		let 重新汇总所有链接 = await ADD(MainData + '\n' + urls.join('\n'));
 		let 自建节点 ="";
@@ -353,6 +353,15 @@ function isBase64(str) {
         return btoa(atob(str)) === str;
     } catch (err) {
         return false;
+    }
+}
+
+// Base64编码函数
+function base64Encode(str) {
+    try {
+        return btoa(str);
+    } catch (error) {
+        console.error('There has been a problem with your Base64 encoding operation:', error);
     }
 }
 
