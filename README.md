@@ -1,8 +1,9 @@
-# 定制汇聚订阅 CF-Workers-SUB
+# 魔改版定制汇聚订阅 CF-Workers-SUB 可以配合cfno1优选订阅使用
 
-### 这个是一个通过 Cloudflare Workers 搭建，将你任意节点与多个订阅汇聚成专属于你的订阅链接
+### 这个是一个通过 Cloudflare Workers 搭建，将你任意节点与多个订阅汇聚成专属于你的订阅链接，自建节点（只支持vmess和vless）可以配合cfno1订阅刷新优选ip和端口
 
-Telegram交流群：[@CMLiussss](https://t.me/CMLiussss)
+MJJ-Telegram交流群：[魔改版MJJ交流群](https://t.me/bestvpschat)
+CM-Telegram交流群：[@CMLiussss原版交流群](https://t.me/CMLiussss)
 
 ## Pages 部署方法 [视频教程](https://youtu.be/9npcBXZTSe4)
 ### 1. 部署 Cloudflare Pages：
@@ -90,6 +91,7 @@ vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogIuWKoOWFpeaIkeeahOmikemBk3QubWUvQ01MaXVz
 | TGID | 6946912345 | 接收TG通知的账户数字ID | 
 | SUBAPI | apiurl.v1.mk | clash、singbox等 订阅转换后端 | 
 | SUBCONFIG | [https://raw.github.../ACL4SSR_Online_MultiCountry.ini](https://raw.githubusercontent.com/cmliu/ACL4SSR/main/Clash/config/ACL4SSR_Online_MultiCountry.ini) | clash、singbox等 订阅转换配置文件 | 
+| SUBPROXYURL | https://cfno1.pages.dev/sub | 魔改版本优选IP订阅 | 
 
 
 ## 注意事项
