@@ -20,6 +20,7 @@ CM-Telegram交流群：[@CMLiussss原版交流群](https://t.me/CMLiussss)
 
   例如您的pages项目域名为：`sub.fuck.cloudns.biz`；
    - 添加 `TOKEN` 变量，快速订阅访问入口，默认值为: `auto` ，获取订阅器默认节点订阅地址即 `/auto` ，例如 `https://sub.fuck.cloudns.biz/auto`
+   - 导入`clash`若测试延迟超时，可更改客户端后台测试链接为：`https://speedtest.net` , `https://www.google.com/generate_204`
 
 ### 4. 添加你的节点和订阅链接：
    - 添加 `LINK` 变量，参数添加你的自建节点链接和机场订阅链接，确保每行一个链接，例如：
