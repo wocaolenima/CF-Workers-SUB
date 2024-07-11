@@ -1,6 +1,6 @@
 # 魔改版定制汇聚订阅 CF-Workers-SUB 可以配合cfno1优选订阅使用
 
-### 这个是一个通过 Cloudflare Workers 搭建，将你任意节点与多个订阅汇聚成专属于你的订阅链接，自建节点（只支持vmess和vless）可以配合cfno1订阅刷新优选ip和端口
+### 魔改版定制汇聚订阅+cfno1优选订阅，它是一个通过 Cloudflare Workers 搭建，将你任意节点与多个订阅汇聚成专属于你的订阅链接，自建节点（只支持vmess和vless）可以配合cfno1订阅刷新优选ip和端口
 
 MJJ-Telegram交流群：[魔改版MJJ交流群](https://t.me/bestvpschat)
 CM-Telegram交流群：[@CMLiussss原版交流群](https://t.me/CMLiussss)
