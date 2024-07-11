@@ -1,5 +1,6 @@
 
 // 部署完成后在网址后面加上这个，获取自建节点和机场聚合节点，/?token=auto或/auto或
+
 let mytoken = 'auto'; //可以随便取，或者uuid生成，https://1024tools.com/uuid
 let BotToken =''; //可以为空，或者@BotFather中输入/start，/newbot，并关注机器人
 let ChatID =''; //可以为空，或者@userinfobot中获取，/start
@@ -8,17 +9,21 @@ let FileName = 'CF-Workers-SUB';
 let SUBUpdateTime = 6; //自定义订阅更新时间，单位小时
 let total = 99;//TB
 let timestamp = 4102329600000;//2099-12-31
+
 //节点链接 + 订阅链接
 let MainData = `
 vless://b7a392e2-4ef0-4496-90bc-1c37bb234904@cf.090227.xyz:443?encryption=none&security=tls&sni=edgetunnel-2z2.pages.dev&fp=random&type=ws&host=edgetunnel-2z2.pages.dev&path=%2F%3Fed%3D2048#%E5%8A%A0%E5%85%A5%E6%88%91%E7%9A%84%E9%A2%91%E9%81%93t.me%2FCMLiussss%E8%A7%A3%E9%94%81%E6%9B%B4%E5%A4%9A%E4%BC%98%E9%80%89%E8%8A%82%E7%82%B9
 https://sub.xf.free.hr/auto
 https://WARP.fxxk.dedyn.io/auto
 `
+
 let urls = [];
 let subconverter = "subapi-loadbalancing.pages.dev"; //在线订阅转换后端，目前使用CM的订阅转换功能。支持自建psub 可自行搭建https://github.com/bulianglin/psub
 let subconfig = "https://raw.githubusercontent.com/cmliu/ACL4SSR/main/Clash/config/ACL4SSR_Online_MultiCountry.ini"; //订阅配置文件
+
 let subproxyUrl = "https://cfno1.pages.dev/sub";
 let encodedData = '';
+
 export default {
 	async fetch (request,env) {
 		const userAgentHeader = request.headers.get('User-Agent');
@@ -35,17 +40,21 @@ export default {
 		MainData = env.LINK || MainData;
 		if(env.LINKSUB) urls = await ADD(env.LINKSUB);
 		subproxyUrl = env.SUBPROXYURL || subproxyUrl;
+
 		const currentDate = new Date();
 		currentDate.setHours(0, 0, 0, 0); 
 		const timeTemp = Math.ceil(currentDate.getTime() / 1000);
 		const fakeToken = await MD5MD5(`${mytoken}${timeTemp}`);
 		//console.log(`${fakeUserID}\n${fakeHostName}`); // 打印fakeID
+
 		let UD = Math.floor(((timestamp - Date.now())/timestamp * total * 1099511627776 )/2);
 		total = total * 1099511627776 ;
 		let expire= Math.floor(timestamp / 1000) ;
 		SUBUpdateTime = env.SUBUPTIME || SUBUpdateTime;
+
 		// 获取优选IP端口订阅数据
 		encodedData = await fetchSubscription(subproxyUrl);
+
 		let 重新汇总所有链接 = await ADD(MainData + '\n' + urls.join('\n'));
 		let 自建节点 ="";
 		let 订阅链接 ="";
@@ -56,6 +65,7 @@ export default {
 				//这里裂变所有可替换节点的优选IP和端口
 				const additionalName = "@bestvpschat"; // 你想要增加的名称
 				const newLinks = getEncodedNewLinks(x, additionalName);
+
 				if (newLinks.length > 0) {
 				   newLinks.forEach(newLink => {
 					自建节点 += newLink + '\n';
@@ -69,6 +79,7 @@ export default {
 		}
 		MainData = 自建节点;
 		urls = await ADD(订阅链接);
+
 		if ( !(token == mytoken || token == fakeToken || url.pathname == ("/"+ mytoken) || url.pathname.includes("/"+ mytoken + "?")) ) {
 			if ( TG == 1 && url.pathname !== "/" && url.pathname !== "/favicon.ico" ) await sendMessage(`#异常访问 ${FileName}`, request.headers.get('CF-Connecting-IP'), `UA: ${userAgent}</tg-spoiler>\n域名: ${url.hostname}\n<tg-spoiler>入口: ${url.pathname + url.search}</tg-spoiler>`);
 			const envKey = env.URL302 ? 'URL302' : (env.URL ? 'URL' : null);
@@ -93,6 +104,7 @@ export default {
 			} else if (userAgent.includes('sing-box') || userAgent.includes('singbox') || ( (url.searchParams.has('sb') || url.searchParams.has('singbox')) && !userAgent.includes('subconverter'))){
 				订阅格式 = 'singbox';
 			}
+
 			let subconverterUrl ;
 			let 订阅转换URL = `${url.origin}/${await MD5MD5(fakeToken)}?token=${fakeToken}`;
 			//console.log(订阅转换URL);
@@ -104,6 +116,7 @@ export default {
 				controller.abort(); // 取消所有请求
 			}, 2000); // 2秒后触发
 	
+
 			let 追加UA = 'v2rayn';
 			if (url.searchParams.has('clash')){
 				追加UA = 'clash';
@@ -155,6 +168,7 @@ export default {
 				// 无论成功或失败，最后都清除设置的超时定时器
 				clearTimeout(timeout);
 			}
+
 			//修复中文错误
 			const utf8Encoder = new TextEncoder();
 			const encodedData = utf8Encoder.encode(req_data);
@@ -166,6 +180,7 @@ export default {
 			console.log(result);
 			
 			const base64Data = btoa(result);
+
 			if (订阅格式 == 'base64' || token == fakeToken){
 				return new Response(base64Data ,{
 					headers: { 
@@ -201,6 +216,7 @@ export default {
 						"content-type": "text/plain; charset=utf-8",
 						"Profile-Update-Interval": `${SUBUpdateTime}`,
 						"Subscription-Userinfo": `upload=${UD}; download=${UD}; total=${total}; expire=${expire}`,
+
 					},
 				});
 			} catch (error) {
@@ -215,6 +231,7 @@ export default {
 		}
 	}
 };
+
 async function ADD(envadd) {
 	var addtext = envadd.replace(/[	"'|\r\n]+/g, ',').replace(/,+/g, ',');  // 将空格、双引号、单引号和换行符替换为逗号
 	//console.log(addtext);
@@ -224,6 +241,7 @@ async function ADD(envadd) {
 	//console.log(add);
 	return add ;
 }
+
 async function nginx() {
 	const text = `
 	<!DOCTYPE html>
@@ -254,6 +272,7 @@ async function nginx() {
 	`
 	return text ;
 }
+
 async function sendMessage(type, ip, add_data = "") {
 	if ( BotToken !== '' && ChatID !== ''){
 		let msg = "";
@@ -276,23 +295,27 @@ async function sendMessage(type, ip, add_data = "") {
 		});
 	}
 }
+
 function base64Decode(str) {
 	const bytes = new Uint8Array(atob(str).split('').map(c => c.charCodeAt(0)));
 	const decoder = new TextDecoder('utf-8');
 	return decoder.decode(bytes);
 }
+
 async function MD5MD5(text) {
 	const encoder = new TextEncoder();
   
 	const firstPass = await crypto.subtle.digest('MD5', encoder.encode(text));
 	const firstPassArray = Array.from(new Uint8Array(firstPass));
 	const firstHex = firstPassArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
 	const secondPass = await crypto.subtle.digest('MD5', encoder.encode(firstHex.slice(7, 27)));
 	const secondPassArray = Array.from(new Uint8Array(secondPass));
 	const secondHex = secondPassArray.map(b => b.toString(16).padStart(2, '0')).join('');
   
 	return secondHex.toLowerCase();
 }
+
 async function fetchSubscription(url) {
     try {
         const response = await fetch(url);
@@ -305,6 +328,7 @@ async function fetchSubscription(url) {
         console.error('There has been a problem with your fetch operation:', error);
     }
 }
+
 function clashFix(content) {
 	if(content.includes('wireguard') && !content.includes('remote-dns-resolve')){
 		let lines;
@@ -324,10 +348,12 @@ function clashFix(content) {
 				result += line + '\n';
 			}
 		}
+
 		content = result;
 	}
 	return content;
 }
+
 // 判断字符串是否为Base64编码
 function isBase64(str) {
     try {
@@ -336,6 +362,7 @@ function isBase64(str) {
         return false;
     }
 }
+
 // Base64编码函数
 function base64Encode(str) {
     try {
@@ -344,6 +371,8 @@ function base64Encode(str) {
         console.error('There has been a problem with your Base64 encoding operation:', error);
     }
 }
+
+
 // 解析IP、端口和名称信息
 function parseIPPort(data) {
     const lines = data.split('\n');
@@ -360,22 +389,11 @@ function parseIPPort(data) {
 }
 
 // 替换vmess链接中的IP和端口，并在原有名称基础上增加新的名称
-// 替换vmess链接中的IP和端口，并在原有ps标签基础上增加新的名称
 function replaceVmessIPPort(template, ip, port, newName) {
     const originalNameMatch = template.match(/#(.*)$/);
     const originalName = originalNameMatch ? originalNameMatch[1] : '';
-    // 使用正则表达式获取ps标签的值
-    const psMatch = template.match(/"ps":\s*"(.*?)"/);
-    const originalName = psMatch ? psMatch[1] : '';
     const finalName = originalName ? `${originalName}|${newName}` : newName;
     return template.replace(/"add":\s*".*?"/, `"add": "${ip}"`).replace(/"port":\s*"\d+"/, `"port": "${port}"`).replace(/#.*$/, `#${finalName}`);
-
-    const replacedTemplate = template
-        .replace(/"add":\s*".*?"/, `"add": "${ip}"`)
-        .replace(/"port":\s*"\d+"/, `"port": "${port}"`)
-        .replace(/"ps":\s*".*?"/, `"ps": "${finalName}"`);
-
-    return replacedTemplate;
 }
 
 // 替换vless链接中的IP和端口，并在原有名称基础上增加新的名称
@@ -385,22 +403,27 @@ function replaceVlessIPPort(template, ip, port, newName) {
     const finalName = originalName ? `${originalName}|${newName}` : newName;
     return template.replace(/@[^:]+:\d+/, `@${ip}:${port}`).replace(/#.*$/, `#${finalName}`);
 }
+
 // 获取encodedNewLinks的方法
 function getEncodedNewLinks(templateLink, additionalName) {
     const newLinks = [];
+
     // 判断是vmess还是vless链接
     const isVmess = templateLink.startsWith("vmess://");
     const isVless = templateLink.startsWith("vless://");
+
     // 去掉前缀
     if (isVmess) {
         templateLink = templateLink.slice(8);
     } else if (isVless) {
         templateLink = templateLink.slice(8);
     }
+
     // 判断templateLink是否为Base64编码并进行解码（仅针对vmess）
     if (isVmess && isBase64(templateLink)) {
         templateLink = base64Decode(templateLink);
     }
+
     if (encodedData) {
         const decodedData = base64Decode(encodedData.trim());
         if (decodedData) {
@@ -419,5 +442,6 @@ function getEncodedNewLinks(templateLink, additionalName) {
             });
         }
     }
+
     return newLinks;
 }
