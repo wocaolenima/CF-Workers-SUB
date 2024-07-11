@@ -63,10 +63,17 @@ export default {
 				订阅链接 += x + '\n';
 			} else {
 				//这里裂变所有可替换节点的优选IP和端口
-				const newLinks = getEncodedNewLinks(x);
-				newLinks.forEach(newLink => {
+				const additionalName = "@bestvpschat"; // 你想要增加的名称
+				const newLinks = getEncodedNewLinks(x, additionalName);
+
+				if (newLinks.length > 0) {
+				   newLinks.forEach(newLink => {
 					自建节点 += newLink + '\n';
 				   });
+				} else {
+				   自建节点 += x + '\n';
+				}
+				
 				//自建节点 += x + '\n';
 			}
 		}
@@ -365,35 +372,52 @@ function base64Encode(str) {
     }
 }
 
-// 解析IP和端口信息
+// 解析IP、端口和名称信息
 function parseIPPort(data) {
     const lines = data.split('\n');
     const ipPortList = lines.map(line => {
-        const match = line.match(/@([^:]+):(\d+)/);
+        const match = line.match(/@([^:]+):(\d+)(#(.*))?/);
         if (match) {
-            return { ip: match[1], port: match[2] };
+            return { ip: match[1], port: match[2], name: match[4] || '' };
         }
         return null;
     }).filter(entry => entry !== null); // 过滤掉无效的条目
     return ipPortList;
 }
 
-// 替换链接中的IP和端口
-function replaceIPPort(template, ip, port) {
-    return template.replace(/"add":\s*".*?"/, `"add": "${ip}"`).replace(/"port":\s*"\d+"/, `"port": "${port}"`);
+// 替换vmess链接中的IP和端口，并在原有名称基础上增加新的名称
+function replaceVmessIPPort(template, ip, port, newName) {
+    const originalNameMatch = template.match(/#(.*)$/);
+    const originalName = originalNameMatch ? originalNameMatch[1] : '';
+    const finalName = originalName ? `${originalName}|${newName}` : newName;
+    return template.replace(/"add":\s*".*?"/, `"add": "${ip}"`).replace(/"port":\s*"\d+"/, `"port": "${port}"`).replace(/#.*$/, `#${finalName}`);
+}
+
+// 替换vless链接中的IP和端口，并在原有名称基础上增加新的名称
+function replaceVlessIPPort(template, ip, port, newName) {
+    const originalNameMatch = template.match(/#(.*)$/);
+    const originalName = originalNameMatch ? originalNameMatch[1] : '';
+    const finalName = originalName ? `${originalName}|${newName}` : newName;
+    return template.replace(/@[^:]+:\d+/, `@${ip}:${port}`).replace(/#.*$/, `#${finalName}`);
 }
 
 // 获取encodedNewLinks的方法
-function getEncodedNewLinks(templateLink) {
+function getEncodedNewLinks(templateLink, additionalName) {
     const newLinks = [];
 
-    // 去掉"vmess://"前缀
-    if (templateLink.startsWith("vmess://")) {
+    // 判断是vmess还是vless链接
+    const isVmess = templateLink.startsWith("vmess://");
+    const isVless = templateLink.startsWith("vless://");
+
+    // 去掉前缀
+    if (isVmess) {
+        templateLink = templateLink.slice(8);
+    } else if (isVless) {
         templateLink = templateLink.slice(8);
     }
 
-    // 判断templateLink是否为Base64编码并进行解码
-    if (isBase64(templateLink)) {
+    // 判断templateLink是否为Base64编码并进行解码（仅针对vmess）
+    if (isVmess && isBase64(templateLink)) {
         templateLink = base64Decode(templateLink);
     }
 
@@ -401,10 +425,17 @@ function getEncodedNewLinks(templateLink) {
         const decodedData = base64Decode(encodedData.trim());
         if (decodedData) {
             const ipPortList = parseIPPort(decodedData);
-            ipPortList.forEach(({ ip, port }) => {
-                const newLink = replaceIPPort(templateLink, ip, port);
-                const encodedNewLink = base64Encode(newLink);
-                newLinks.push(`vmess://${encodedNewLink}`);
+            ipPortList.forEach(({ ip, port, name }) => {
+                const finalName = name ? `${name}|${additionalName}` : additionalName;
+                let newLink;
+                if (isVmess) {
+                    newLink = replaceVmessIPPort(templateLink, ip, port, finalName);
+                    const encodedNewLink = base64Encode(newLink);
+                    newLinks.push(`vmess://${encodedNewLink}`);
+                } else if (isVless) {
+                    newLink = replaceVlessIPPort(templateLink, ip, port, finalName);
+                    newLinks.push(`vless://${newLink}`);
+                }
             });
         }
     }
