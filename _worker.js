@@ -372,13 +372,16 @@ function base64Encode(str) {
     }
 }
 
+
 // 解析IP、端口和名称信息
 function parseIPPort(data) {
     const lines = data.split('\n');
     const ipPortList = lines.map(line => {
         const match = line.match(/@([^:]+):(\d+)(#(.*))?/);
         if (match) {
-            return { ip: match[1], port: match[2], name: match[4] || '' };
+            const lastHashIndex = line.lastIndexOf('#');
+            let name = lastHashIndex !== -1 ? line.substring(lastHashIndex + 1) : '';
+            return { ip: match[1], port: match[2], name };
         }
         return null;
     }).filter(entry => entry !== null); // 过滤掉无效的条目
