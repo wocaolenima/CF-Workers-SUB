@@ -379,21 +379,35 @@ function parseIPPort(data) {
     const ipPortList = lines.map(line => {
         const match = line.match(/@([^:]+):(\d+)(#(.*))?/);
         if (match) {
-            const lastHashIndex = line.lastIndexOf('#');
-            let name = lastHashIndex !== -1 ? line.substring(lastHashIndex + 1) : '';
-            return { ip: match[1], port: match[2], name };
+		if (isValidIPv4(match[1])) {
+			const lastHashIndex = line.lastIndexOf('#');
+            		let name = lastHashIndex !== -1 ? line.substring(lastHashIndex + 1) : '';
+            		return { ip: match[1], port: match[2], name };
+		}
         }
         return null;
     }).filter(entry => entry !== null); // 过滤掉无效的条目
     return ipPortList;
 }
 
-// 替换vmess链接中的IP和端口，并在原有名称基础上增加新的名称
+function isValidIPv4(ip) {
+    const ipv4Pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipv4Pattern.test(ip);
+}
+
+// 替换vmess链接中的IP和端口，并在原有ps标签基础上增加新的名称
 function replaceVmessIPPort(template, ip, port, newName) {
-    const originalNameMatch = template.match(/#(.*)$/);
-    const originalName = originalNameMatch ? originalNameMatch[1] : '';
+    // 使用正则表达式获取ps标签的值
+    const psMatch = template.match(/"ps":\s*"(.*?)"/);
+    const originalName = psMatch ? psMatch[1] : '';
     const finalName = originalName ? `${originalName}|${newName}` : newName;
-    return template.replace(/"add":\s*".*?"/, `"add": "${ip}"`).replace(/"port":\s*"\d+"/, `"port": "${port}"`).replace(/#.*$/, `#${finalName}`);
+    
+    const replacedTemplate = template
+        .replace(/"add":\s*".*?"/, `"add": "${ip}"`)
+        .replace(/"port":\s*"\d+"/, `"port": "${port}"`)
+        .replace(/"ps":\s*".*?"/, `"ps": "${finalName}"`);
+
+    return replacedTemplate;
 }
 
 // 替换vless链接中的IP和端口，并在原有名称基础上增加新的名称
